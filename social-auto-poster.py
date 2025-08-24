@@ -10,10 +10,113 @@ from selenium.webdriver.common.action_chains import ActionChains
 from dotenv import load_dotenv
 import pyperclip
 import time
+import json
 import platform
 import random
 import logging
 import os
+
+
+def extract_group_urls(driver, max_iterations=10):
+    """
+    Extract urls from facebook groups
+    """
+    logger.info("Starting incremental URL extraction...")
+
+    driver.get(MY_GROUPS_URL)
+    time.sleep(2)
+
+    all_urls = set()
+    iterations_without_new = 0
+
+    for iteration in range(max_iterations):
+        logger.info(f"Iteration n°{iteration + 1}")
+
+        # 1. Scroll
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
+
+        # 2. Get urls
+        current_urls = get_group_urls_current_view(driver)
+
+        # 3. Filter urls
+        current_urls = [u for u in current_urls if "/groups/" in u and "/joins/" not in u]
+
+        # 4. Count
+        urls_before = len(all_urls)
+        all_urls.update(current_urls)
+        urls_after = len(all_urls)
+        new_count = urls_after - urls_before
+
+        logger.info(f"URLs trouvées cette vue: {len(current_urls)}")
+        logger.info(f"Nouvelles URLs: {new_count}")
+        logger.info(f"Total cumulé: {urls_after}")
+
+        # 5. Stop if no new urls
+        if new_count == 0:
+            iterations_without_new += 1
+            if iterations_without_new >= 5:
+                logger.info("Arrêt: pas de nouvelles URLs depuis 5 itérations")
+                break
+        else:
+            iterations_without_new = 0
+
+    all_urls = [url for url in list(all_urls) if url.endswith("/")]
+
+    for i, url in enumerate(all_urls, 1):
+        logger.info("{}. {}".format(i, url))
+
+    logger.info("\n=== RÉSULTATS FINAUX ===")
+    logger.info(f"Total iterations: {iteration + 1}")
+    logger.info(f"Total URLs uniques: {len(all_urls)}")
+
+    return all_urls
+
+
+def get_group_urls_current_view(driver):
+    """
+    Get urls from current view
+    """
+    current_urls = set()
+    
+    try:
+        # Selector for links with "/groups/"
+        links = driver.find_elements(By.XPATH, '//a[contains(@href, "/groups/")]')
+        
+        for link in links:
+            href = link.get_attribute("href")
+            if is_valid_group_url(href):
+                current_urls.add(href)
+                
+    except Exception as e:
+        logger.debug(f"Erreur extraction URLs: {e}")
+    
+    return current_urls
+
+
+def is_valid_group_url(url):
+    """
+    Validation simple des URLs de groupes
+    """
+    if not url or "/groups/" not in url:
+        return False
+    
+    excluded = [
+        "/groups/create", "/groups/discover", "/groups/feed",
+        "user/", "permalink", "events/", "photos/"
+    ]
+    
+    if any(exclude in url for exclude in excluded):
+        return False
+    
+    # Must have a group id
+    try:
+        group_id = url.split("/groups/")[1].split("/")[0].split("?")[0]
+        return len(group_id) > 3
+    except:
+        return False
+
+
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,6 +153,7 @@ def initialize_webdriver():
     chrome_options = Options()
     
     # Basic stealth options
+    # chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
@@ -99,38 +203,71 @@ def initialize_webdriver():
         raise
 
 
-def scroll_to_page_bottom(driver, max_scrolls=10):
+def scroll_to_page_bottom(driver, max_time_minutes=10):
     """
-    Scroll to the bottom of the page to load all dynamic content.
+    Aggressive scroll to load ALL Facebook groups
     
     Args:
         driver: WebDriver instance
-        max_scrolls (int): Maximum number of scroll attempts
+        max_time_minutes (int): Maximum scroll time in minutes
     """
-    logger.info("Starting page scroll to load all groups...")
+    logger.info(f"Starting scroll for {max_time_minutes} minutes to load all groups...")
     
-    last_height = driver.execute_script("return document.body.scrollHeight")
-    scroll_count = 0
+    start_time = time.time()
+    max_duration = max_time_minutes * 60
     
-    while scroll_count < max_scrolls:
-        # Progressive scrolling
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    previous_group_count = 0
+    no_change_counter = 0
+    max_no_change = 15  # Stop after 15 attempts without new groups
+    
+    scroll_position = 0
+    scroll_increment = 800  # Pixels to scroll each time
+    
+    while time.time() - start_time < max_duration:
+        # Scroll in small increments
+        scroll_position += scroll_increment
+        driver.execute_script(f"window.scrollTo(0, {scroll_position});")
         
-        # Intelligent wait with randomization
-        time.sleep(random.uniform(2, 3))
+        # Wait for content to load
+        time.sleep(random.uniform(2, 4))
         
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            logger.info("Reached end of content")
-            break
-            
-        last_height = new_height
-        scroll_count += 1
-        logger.info(f"Scroll {scroll_count}/{max_scrolls} completed")
+        # Count current groups
+        current_links = driver.find_elements(By.XPATH, '//a[@role="link" and @aria-label and contains(@href, "/groups/")]')
+        current_count = len(current_links)
+        
+        # If no new groups for 5 attempts, we probably have everything
+        if current_count == previous_group_count:
+            no_change_counter += 1
+            if no_change_counter >= max_no_change:
+                logger.info(f"No new groups found after {max_no_change} attempts, stopping scroll")
+                break
+        else:
+            no_change_counter = 0  # Reset counter if new groups found
+        
+        previous_group_count = current_count
+        
+        # More aggressive scroll if we reach apparent bottom
+        page_height = driver.execute_script("return document.body.scrollHeight")
+        if scroll_position >= page_height:
+            logger.info("Reached apparent page bottom, forcing more scroll...")
+            # Force loading by scrolling even more
+            for _ in range(3):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(random.uniform(3, 5))
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height > page_height:
+                    page_height = new_height
+                    scroll_position = new_height
+                    break
+            else:
+                logger.info("Truly reached end of content")
+                break
     
-    # Return to top of page
+    logger.info("Scroll completed. All groups loaded")
+    
+    # Return to top
     driver.execute_script("window.scrollTo(0, 0);")
-    time.sleep(1)
+    time.sleep(2)
 
 
 def extract_group_links(driver):
@@ -146,11 +283,11 @@ def extract_group_links(driver):
     logger.info("Navigating to Facebook groups page...")
     driver.get(MY_GROUPS_URL)
 
-    time.sleep(random.uniform(3, 6))
+    time.sleep(random.uniform(8, 12))
 
     scroll_to_page_bottom(driver)
-    
-    time.sleep(2)
+
+    time.sleep(5)
     
     all_links = driver.find_elements(By.XPATH, '//a[@role="link" and @aria-label]')
     groups = []
@@ -174,6 +311,7 @@ def extract_group_links(driver):
                 # Avoid duplicates
                 if href not in [grp[1] for grp in groups]:
                     groups.append((name, href))
+                    logger.info(f"Found group: {name} - {href}")
                     
         except Exception as e:
             logger.warning(f"Error processing link: {e}")
@@ -317,7 +455,7 @@ def facebook_login(driver):
         
         logger.info("✅ Login successful!")
 
-        time.sleep(random.uniform(5, 10))
+        time.sleep(random.uniform(2, 4))
         
     except Exception as e:
         logger.error(f"Login failed: {e}")
@@ -425,9 +563,10 @@ def main():
         driver = initialize_webdriver()
     
         facebook_login(driver)
-        
+
         logger.info("Discovering groups...")
-        groups = extract_group_links(driver)
+        # groups = extract_group_links(driver)
+        groups = extract_group_urls(driver)
         
         if not groups:
             logger.error("No groups found! Please check your login status and group memberships.")
@@ -448,10 +587,12 @@ def main():
         print(f"{'='*60}")
         
         # Process each group
-        for i, (name, url) in enumerate(groups, 1):
+        for i, url in enumerate(groups, 1):
+        # for i, (name, url) in enumerate(groups, 1):
             logger.info(f"\n--- Processing Group {i}/{len(groups)} ---")
             
-            success = publish_group_post(driver, name, url, POST_TEXT, dry_run)
+            # success = publish_group_post(driver, name, url, POST_TEXT, dry_run)
+            success = publish_group_post(driver, "test", url, POST_TEXT, dry_run)
             
             if success:
                 successful_posts += 1

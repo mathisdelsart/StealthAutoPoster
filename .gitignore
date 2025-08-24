@@ -1,2 +1,14 @@
+# Logs and files
+facebook_automation.log
+groups.txt
+README_TODO.md
+
+# Virtual environment
 myenv
 .env
+
+# VSCode
+.vscode
+
+# Python
+__pycache__
