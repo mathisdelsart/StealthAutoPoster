@@ -23,10 +23,15 @@ jobs:
         
       - name: Install dependencies
         run: pip install --upgrade pip && pip install -r requirements.txt
+      
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
 
-      - name: Run Selenium script
-        run: python3 social-auto-poster.py
+      - name: Run Selenium script with Xvfb
+        run: xvfb-run -a python3 social-auto-poster.py
         env:
           POST_TEXT: ${{ secrets.POST_TEXT }}
-          DRY_RUN: "false"
+          FACEBOOK_EMAIL: ${{ secrets.FACEBOOK_EMAIL }}
+          FACEBOOK_PASSWORD: ${{ secrets.FACEBOOK_PASSWORD }}
+          DRY_RUN: "true"
           MAX_GROUPS: ""

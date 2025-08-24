@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, ElementNotInteractableException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from dotenv import load_dotenv
 import pyperclip
 import time
 import platform
@@ -18,24 +19,21 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
 POST_TEXT = os.environ.get('POST_TEXT')
 
 MY_GROUPS_URL = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
 
 WRITE_SELECTORS = [
-    '//span[contains(text(), "Exprimez-vous")]/ancestor::div[@role="button"]',
-    # '//span[contains(text(), "Write something")]/ancestor::div[@role="button"]'
+    '//span[contains(text(), "Exprimez-vous")]/ancestor::div[@role="button"]'
 ]
 
 POST_SELECTORS = [
     '//div[@aria-label="Publier" and @role="button"]',
     '//span[text()="Publier"]/parent::div[@role="button"]',
     '//span[text()="Publier"]/ancestor::div[@role="button"]',
-    '//div[contains(text(), "Publier") and @role="button"]',
-    # '//div[@aria-label="Post" and @role="button"]',
-    # '//span[text()="Post"]/parent::div[@role="button"]',
-    # '//span[text()="Post"]/ancestor::div[@role="button"]',
-    # '//div[contains(text(), "Post") and @role="button"]'
+    '//div[contains(text(), "Publier") and @role="button"]'
 ]
 
 
@@ -53,12 +51,27 @@ def initialize_webdriver():
     
     # Basic stealth options
     chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_argument("--disable-web-security")
-    chrome_options.add_argument("--allow-running-insecure-content")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
+
+    chrome_options.add_argument("--disable-save-password-bubble")
+    chrome_options.add_argument("--disable-password-generation")
+    chrome_options.add_argument("--disable-notifications")
+    chrome_options.add_argument("--disable-infobars")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--disable-popup-blocking")
+    chrome_options.add_argument("--disable-default-apps")
+
+    prefs = {
+        "profile.default_content_setting_values.notifications": 2,
+        "profile.password_manager_enabled": False,
+        "profile.default_content_settings.popups": 0,
+        "credentials_enable_service": False,
+        "profile.password_manager_leak_detection": False
+    }
+    chrome_options.add_experimental_option("prefs", prefs)
     
     # Realistic user agent
     chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -131,9 +144,13 @@ def extract_group_links(driver):
     Returns:
         list: List of tuples containing (group_name, group_url)
     """
+    logger.info("Navigating to Facebook groups page...")
+    driver.get(MY_GROUPS_URL)
+
+    time.sleep(1)
+
     scroll_to_page_bottom(driver)
     
-    # Wait for links to load
     time.sleep(2)
     
     all_links = driver.find_elements(By.XPATH, '//a[@role="link" and @aria-label]')
@@ -166,6 +183,120 @@ def extract_group_links(driver):
 
     logger.info(f"Total groups found: {len(groups)}")
     return groups
+
+
+def type_slowly(element, text, min_delay=0.1, max_delay=0.3):
+    """
+    Types text character by character with random delays to mimic human behavior
+    
+    Args:
+        element: WebDriver element to type into
+        text: Text string to type
+        min_delay: Minimum delay between characters in seconds
+        max_delay: Maximum delay between characters in seconds
+    """
+    logger.debug(f"Starting slow typing for text of length {len(text)}")
+    element.clear()
+    
+    for char in text:
+        element.send_keys(char)
+        # Random delay between each character to simulate human typing speed variation
+        delay = random.uniform(min_delay, max_delay)
+        time.sleep(delay)
+    
+    logger.debug("Slow typing completed successfully")
+
+
+def facebook_login(driver):
+    """
+    Automated Facebook login with anti-detection measures
+    
+    Args:
+        driver: Selenium WebDriver instance
+        
+    Raises:
+        ValueError: If environment variables are not set
+        TimeoutException: If login elements are not found or login fails
+    """
+    logger.info("Starting Facebook login process...")
+    
+    # Retrieve credentials from environment variables for security
+    email = os.environ.get('FACEBOOK_EMAIL')
+    password = os.environ.get('FACEBOOK_PASSWORD')
+    
+    if not email or not password:
+        logger.error("Missing environment variables for Facebook credentials")
+        raise ValueError("Environment variables FACEBOOK_EMAIL and FACEBOOK_PASSWORD are required")
+    
+    logger.debug("Credentials loaded from environment variables")
+    
+    # Navigate to Facebook login page
+    logger.info("Navigating to Facebook login page...")
+    driver.get("https://www.facebook.com/login")
+    
+    # Wait for page to load completely
+    page_load_delay = random.uniform(2, 4)
+    logger.debug(f"Waiting {page_load_delay:.1f}s for page to load")
+    time.sleep(page_load_delay)
+    
+    try:
+        # Wait for and locate email input field
+        logger.debug("Locating email input field...")
+        email_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "email"))
+        )
+        logger.debug("Email field found successfully")
+        
+        # Type email slowly with human-like delays
+        logger.info("Entering email address...")
+        type_slowly(email_field, email, min_delay=0.05, max_delay=0.25)
+        
+        # Natural pause between filling email and password (human behavior)
+        pause_duration = random.uniform(1, 2.5)
+        logger.debug(f"Pausing {pause_duration:.1f}s between email and password entry")
+        time.sleep(pause_duration)
+        
+        # Locate password input field
+        logger.debug("Locating password input field...")
+        password_field = driver.find_element(By.ID, "pass")
+        logger.debug("Password field found successfully")
+        
+        # Type password slowly with slightly longer delays (more careful with passwords)
+        logger.info("Entering password...")
+        type_slowly(password_field, password, min_delay=0.1, max_delay=0.3)
+        
+        # Another human-like pause before clicking login
+        pre_login_pause = random.uniform(0.5, 1.5)
+        logger.debug(f"Pausing {pre_login_pause:.1f}s before clicking login")
+        time.sleep(pre_login_pause)
+        
+        # Locate login button
+        logger.debug("Locating login button...")
+        login_button = driver.find_element(By.NAME, "login")
+        logger.debug("Login button found successfully")
+        
+        # Scroll to ensure button is visible (prevents click interception)
+        logger.debug("Scrolling to login button...")
+        driver.execute_script("arguments[0].scrollIntoView(true);", login_button)
+        time.sleep(random.uniform(0.5, 1))
+        
+        # Click login button
+        logger.info("Clicking login button...")
+        driver.execute_script("arguments[0].click();", login_button)
+        
+        # Wait for successful login (URL change indicates success)
+        logger.info("Waiting for login to complete...")
+        WebDriverWait(driver, 15).until(
+            lambda driver: "facebook.com" in driver.current_url and "login" not in driver.current_url
+        )
+        
+        logger.info("✅ Login successful!")
+
+        time.sleep(random.uniform(2, 5))
+        
+    except Exception as e:
+        logger.error(f"Login failed: {e}")
+        raise
 
 
 def find_element_with_multiple_selectors(driver, selectors, wait_time=10):
@@ -315,7 +446,7 @@ def main():
         print("FACEBOOK GROUP AUTO-POSTER CONFIGURATION")
         print("="*60)
 
-        dry_run = os.getenv("DRY_RUN", "false").lower() == "true"
+        dry_run = os.getenv("DRY_RUN", "true").lower() == "true"
 
         max_groups_input = os.getenv("MAX_GROUPS", "").strip()
         max_groups = int(max_groups_input) if max_groups_input.isdigit() else None
@@ -323,15 +454,13 @@ def main():
         logger.info("Initializing browser...")
         driver = initialize_webdriver()
         
-        logger.info("Navigating to Facebook groups page...")
-        driver.get(MY_GROUPS_URL)
-        
         print("\n" + "="*60)
         print("FACEBOOK LOGIN REQUIRED")
         print("="*60)
         print("1. Please log in to Facebook in the opened browser")
         print("="*60)
-        input("👉 Logged in and ready? Press Enter to continue...")
+
+        facebook_login(driver)
         
         logger.info("Discovering groups...")
         groups = extract_group_links(driver)
