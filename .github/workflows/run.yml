@@ -3,8 +3,8 @@ name: Run Social Auto Poster
 # Automatic Run
 on:
   schedule:
-    - cron: "*/5 * * * *"  # Every 5 minutes (for testing purpose)
-    # - cron: "0 10 * * 2"  # Every Tuesday at 10:00 UTC (11:00 Belgium time)
+    # - cron: "*/5 * * * *"  # Every 5 minutes (for testing purpose)
+    - cron: "0 10 * * 2"  # Every Tuesday at 10:00 UTC (11:00 Belgium time)
   workflow_dispatch:
 
 jobs:
