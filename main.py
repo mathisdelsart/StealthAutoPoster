@@ -24,6 +24,58 @@ def setup_logging(level: str = "INFO"):
     )
 
 
+def load_groups_from_file(file_path: str) -> list:
+    """
+    Load groups from a text file
+    
+    Args:
+        file_path: Path to file containing group URLs (one per line)
+        
+    Returns:
+        list: List of group URLs
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            groups = [line.strip() for line in f if line.strip() and line.strip().startswith('http')]
+        return groups
+    except FileNotFoundError:
+        logging.error(f"Groups file not found: {file_path}")
+        return []
+    except Exception as e:
+        logging.error(f"Error reading groups file: {e}")
+        return []
+
+
+def save_groups_to_file(groups: list, file_path: str, include_names: bool = False) -> bool:
+    """
+    Save extracted groups to a text file
+    
+    Args:
+        groups: List of groups (URLs or tuples of (name, url))
+        file_path: Path to output file
+        include_names: Whether groups include names
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for group in groups:
+                if isinstance(group, tuple) and include_names:
+                    # If it's a tuple (name, url), write only the URL
+                    name, url = group
+                    f.write(f"{url}\n")
+                else:
+                    # If it's just a URL string
+                    f.write(f"{group}\n")
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"Error saving groups to file {file_path}: {e}")
+        return False
+
+
 def main():
     """Main execution function with command line interface"""
     parser = argparse.ArgumentParser(description='Facebook Group Automation Tool')
@@ -129,58 +181,6 @@ def main():
         logger.error(f"Automation failed with error: {e}")
         print(f"\n❌ Automation failed: {e}")
         sys.exit(1)
-
-
-def load_groups_from_file(file_path: str) -> list:
-    """
-    Load groups from a text file
-    
-    Args:
-        file_path: Path to file containing group URLs (one per line)
-        
-    Returns:
-        list: List of group URLs
-    """
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            groups = [line.strip() for line in f if line.strip() and line.strip().startswith('http')]
-        return groups
-    except FileNotFoundError:
-        logging.error(f"Groups file not found: {file_path}")
-        return []
-    except Exception as e:
-        logging.error(f"Error reading groups file: {e}")
-        return []
-
-
-def save_groups_to_file(groups: list, file_path: str, include_names: bool = False) -> bool:
-    """
-    Save extracted groups to a text file
-    
-    Args:
-        groups: List of groups (URLs or tuples of (name, url))
-        file_path: Path to output file
-        include_names: Whether groups include names
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        with open(file_path, 'w', encoding='utf-8') as f:
-            for group in groups:
-                if isinstance(group, tuple) and include_names:
-                    # If it's a tuple (name, url), write only the URL
-                    name, url = group
-                    f.write(f"{url}\n")
-                else:
-                    # If it's just a URL string
-                    f.write(f"{group}\n")
-        
-        return True
-        
-    except Exception as e:
-        logging.error(f"Error saving groups to file {file_path}: {e}")
-        return False
 
 
 if __name__ == "__main__":    

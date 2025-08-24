@@ -53,9 +53,6 @@ class GroupExtractor:
             # Get current URLs
             current_urls = self._get_group_urls_current_view(driver)
             
-            # Filter valid group URLs
-            current_urls = [u for u in current_urls if self._is_valid_group_url(u)]
-            
             # Track new URLs
             urls_before = len(all_urls)
             all_urls.update(current_urls)
@@ -75,7 +72,7 @@ class GroupExtractor:
             else:
                 iterations_without_new = 0
         
-        # Clean and format URLs
+        # Clean URLs
         all_urls = [url for url in list(all_urls) if url.endswith("/")]
         
         logger.info("\n=== FINAL RESULTS ===")

@@ -184,12 +184,12 @@ class FacebookAutomation:
             return f"❌ Automation failed: {stats['error']}"
         
         summary = f"""
-📊 Automation Results Summary:
-• Total groups processed: {stats['total']}
-• Successful posts: {stats['successful']} ✅
-• Failed posts: {stats['failed']} ❌
-• Success rate: {stats['success_rate']:.1f}%
-• Mode: {'Test Mode (no actual posting)' if self.config.automation.dry_run else 'Live Posting'}
+            📊 Automation Results Summary:
+            • Total groups processed: {stats['total']}
+            • Successful posts: {stats['successful']} ✅
+            • Failed posts: {stats['failed']} ❌
+            • Success rate: {stats['success_rate']:.1f}%
+            • Mode: {'Test Mode (no actual posting)' if self.config.automation.dry_run else 'Live Posting'}
         """.strip()
         
         return summary
