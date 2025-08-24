@@ -115,7 +115,7 @@ class FacebookAuthenticator:
             # Use JavaScript to click the button because it's not clickable with 'human_like_click'
             # since there is the cookie consent popup that blocks the login button
             driver.execute_script("arguments[0].click();", login_button)
-            
+
             return True
             
         except Exception as e:
@@ -132,6 +132,7 @@ class FacebookAuthenticator:
             
             logger.info("✅ Login successful!")
             self.human.pause_like_human(2.0, 4.0)
+            self.human.pause_like_human(20.0, 30.0) # Testing purpose
             return True
             
         except TimeoutException:
