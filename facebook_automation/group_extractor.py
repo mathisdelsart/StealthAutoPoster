@@ -3,6 +3,7 @@ Facebook group extraction and discovery
 """
 import time
 import random
+import re
 import logging
 from typing import List, Tuple, Set
 from selenium.webdriver.common.by import By
@@ -214,6 +215,7 @@ class GroupExtractor:
         driver.execute_script("window.scrollTo(0, 0);")
         self.human.pause_like_human(1, 2)
     
+  
     def _extract_groups_with_names(self, driver) -> List[Tuple[str, str]]:
         """
         Extract group names and URLs from the page
@@ -224,31 +226,41 @@ class GroupExtractor:
         Returns:
             List of (group_name, group_url) tuples
         """
-        all_links = driver.find_elements(By.XPATH, '//a[@role="link" and @aria-label]')
         groups = []
-        
+
+        all_links = driver.find_elements(
+            By.XPATH, '//a[contains(@href, "/groups/") and not(contains(@href, "/joins/"))]'
+        )
+
         for link in all_links:
             try:
                 href = link.get_attribute("href")
-                name = link.get_attribute("aria-label")
-
-                if not href or not name:
+                if not href or any(term in href for term in self.excluded_terms):
                     continue
-                
-                # Filter valid group URLs
-                if "/groups/" in href and href.count("/groups/") == 1:
-                    # Exclude unwanted URLs
-                    if any(term in href for term in self.excluded_terms):
-                        continue
-                    
-                    # Avoid duplicates
-                    if href not in [grp[1] for grp in groups]:
-                        groups.append((name, href))
-                        logger.info(f"Found group: {name} - {href}")
-                        
+
+                try:
+                    name = link.find_element(By.XPATH, ".//span").text.strip()
+                except:
+                    name = ""
+
+                if not name:
+                    parent = link.find_element(By.XPATH, "..")
+                    name = parent.text.strip()
+
+                if not name:
+                    grandparent = link.find_element(By.XPATH, "../..")
+                    name = grandparent.text.strip()
+
+                if not name:
+                    continue
+
+                if href not in [grp[1] for grp in groups]:
+                    clean_name = re.split(r"Dernière visite|Last visit", name)[0].strip()
+                    groups.append((clean_name, href))
+
             except Exception as e:
                 logger.warning(f"Error processing link: {e}")
                 continue
-        
+
         logger.info(f"Total groups found: {len(groups)}")
         return groups
