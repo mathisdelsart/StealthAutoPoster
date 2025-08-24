@@ -22,18 +22,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver xvfb
-          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver || true
+          # Créer un lien symbolique pour que Selenium trouve Chrome
+          sudo ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
 
       - name: Install dependencies
         run: pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Run Selenium script
         run: |
-          export CHROME_BIN=$(which chromium-browser)
-          export PATH=$PATH:$(dirname $(which chromedriver))
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          sleep 3
           python3 social-auto-poster.py
         env:
           POST_TEXT: ${{ secrets.POST_TEXT }}
           DRY_RUN: "false"
           MAX_GROUPS: ""
-  
