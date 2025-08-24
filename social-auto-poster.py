@@ -50,7 +50,7 @@ def initialize_webdriver():
     chrome_options = Options()
     
     # Basic stealth options
-    chrome_options.add_argument("--headless")
+    # chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
@@ -147,7 +147,7 @@ def extract_group_links(driver):
     logger.info("Navigating to Facebook groups page...")
     driver.get(MY_GROUPS_URL)
 
-    time.sleep(1)
+    time.sleep(random.uniform(3, 6))
 
     scroll_to_page_bottom(driver)
     
@@ -175,7 +175,7 @@ def extract_group_links(driver):
                 # Avoid duplicates
                 if href not in [grp[1] for grp in groups]:
                     groups.append((name, href))
-                    logger.info(f"Group discovered: {name}")
+                    # logger.info(f"Group discovered: {name}")
                     
         except Exception as e:
             logger.warning(f"Error processing link: {e}")
@@ -292,7 +292,7 @@ def facebook_login(driver):
         
         logger.info("✅ Login successful!")
 
-        time.sleep(random.uniform(2, 5))
+        time.sleep(random.uniform(5, 10))
         
     except Exception as e:
         logger.error(f"Login failed: {e}")
@@ -442,10 +442,6 @@ def main():
     
     try:
         # User configuration options
-        print("\n" + "="*60)
-        print("FACEBOOK GROUP AUTO-POSTER CONFIGURATION")
-        print("="*60)
-
         dry_run = os.getenv("DRY_RUN", "true").lower() == "true"
 
         max_groups_input = os.getenv("MAX_GROUPS", "").strip()
@@ -453,13 +449,7 @@ def main():
 
         logger.info("Initializing browser...")
         driver = initialize_webdriver()
-        
-        print("\n" + "="*60)
-        print("FACEBOOK LOGIN REQUIRED")
-        print("="*60)
-        print("1. Please log in to Facebook in the opened browser")
-        print("="*60)
-
+    
         facebook_login(driver)
         
         logger.info("Discovering groups...")
