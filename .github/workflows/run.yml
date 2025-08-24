@@ -34,3 +34,6 @@ jobs:
           python3 social-auto-poster.py
         env:
           POST_TEXT: ${{ secrets.POST_TEXT }}
+          DRY_RUN: "false"
+          MAX_GROUPS: ""
+  

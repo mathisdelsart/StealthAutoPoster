@@ -313,11 +313,12 @@ def main():
         print("\n" + "="*60)
         print("FACEBOOK GROUP AUTO-POSTER CONFIGURATION")
         print("="*60)
-        
-        dry_run = input("Enable test mode (prepare posts without publishing)? (y/N): ").lower().startswith('y')
-        max_groups_input = input("Maximum number of groups to process (Enter for all): ").strip()
+
+        dry_run = os.getenv("DRY_RUN", "false").lower() == "true"
+
+        max_groups_input = os.getenv("MAX_GROUPS", "").strip()
         max_groups = int(max_groups_input) if max_groups_input.isdigit() else None
-        
+
         logger.info("Initializing browser...")
         driver = initialize_webdriver()
         
