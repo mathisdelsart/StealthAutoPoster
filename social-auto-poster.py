@@ -7,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, ElementNotInteractableException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from dotenv import load_dotenv
 import pyperclip
 import time
 import platform
@@ -19,15 +18,8 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Load .env file
-load_dotenv()
+POST_TEXT = os.environ.get('POST_TEXT')
 
-# Get POST_TEXT from .env file
-POST_TEXT = os.getenv("POST_TEXT")
-
-if not POST_TEXT:
-    raise ValueError("POST_TEXT is not set in .env file")
-    
 MY_GROUPS_URL = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
 
 WRITE_SELECTORS = [
