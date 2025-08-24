@@ -50,7 +50,6 @@ def initialize_webdriver():
     chrome_options = Options()
     
     # Basic stealth options
-    # chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
@@ -171,11 +170,10 @@ def extract_group_links(driver):
                 # Exclude unwanted URLs
                 if any(term in href for term in excluded_terms):
                     continue
-                    
+
                 # Avoid duplicates
                 if href not in [grp[1] for grp in groups]:
                     groups.append((name, href))
-                    # logger.info(f"Group discovered: {name}")
                     
         except Exception as e:
             logger.warning(f"Error processing link: {e}")
@@ -183,6 +181,33 @@ def extract_group_links(driver):
 
     logger.info(f"Total groups found: {len(groups)}")
     return groups
+
+
+def find_element_with_multiple_selectors(driver, selectors, wait_time=10):
+    """
+    Attempt to find an element using multiple XPath selectors.
+    
+    Args:
+        driver: WebDriver instance
+        selectors (list): List of XPath selectors to try
+        wait_time (int): Maximum wait time for element
+        
+    Returns:
+        WebElement or None: Found element or None if not found
+    """
+    wait = WebDriverWait(driver, wait_time)
+    
+    for selector in selectors:
+        try:
+            element = wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
+            logger.debug(f"Element found using selector: {selector}")
+            return element
+        except TimeoutException:
+            logger.debug(f"Selector failed: {selector}")
+            continue
+    
+    logger.warning("No element found with any of the provided selectors")
+    return None
 
 
 def type_slowly(element, text, min_delay=0.1, max_delay=0.3):
@@ -299,48 +324,6 @@ def facebook_login(driver):
         raise
 
 
-def find_element_with_multiple_selectors(driver, selectors, wait_time=10):
-    """
-    Attempt to find an element using multiple XPath selectors.
-    
-    Args:
-        driver: WebDriver instance
-        selectors (list): List of XPath selectors to try
-        wait_time (int): Maximum wait time for element
-        
-    Returns:
-        WebElement or None: Found element or None if not found
-    """
-    wait = WebDriverWait(driver, wait_time)
-    
-    for selector in selectors:
-        try:
-            element = wait.until(EC.element_to_be_clickable((By.XPATH, selector)))
-            logger.debug(f"Element found using selector: {selector}")
-            return element
-        except TimeoutException:
-            logger.debug(f"Selector failed: {selector}")
-            continue
-    
-    logger.warning("No element found with any of the provided selectors")
-    return None
-
-
-def simulate_human_typing(element, text, delay_range=(0.05, 0.15)):
-    """
-    Simulate human-like typing behavior with random delays.
-    
-    Args:
-        element: WebElement to type into
-        text (str): Text to type
-        delay_range (tuple): Range of delays between keystrokes
-    """
-    logger.debug("Simulating human typing...")
-    for char in text:
-        element.send_keys(char)
-        time.sleep(random.uniform(*delay_range))
-
-
 def publish_group_post(driver, group_name, group_url, post_content, dry_run=False):
     """
     Publish a post to a specific Facebook group with comprehensive error handling.
@@ -394,18 +377,9 @@ def publish_group_post(driver, group_name, group_url, post_content, dry_run=Fals
 
                 time.sleep(2)
                 
-                # Verify paste operation success
-                current_text = active_element.get_attribute("textContent") or active_element.get_attribute("innerText") or ""
-                if len(current_text.strip()) < len(post_content.strip()) * 0.8:  # At least 80% of text
-                    logger.warning("Clipboard paste failed, attempting manual typing...")
-                    active_element.clear()
-                    simulate_human_typing(active_element, post_content)
-                else:
-                    logger.debug("Clipboard paste successful")
-                
             except Exception as e:
                 logger.warning(f"Clipboard operation failed: {e}, using manual typing")
-                simulate_human_typing(active_element, post_content)
+                type_slowly(active_element, post_content, min_delay=0.05, max_delay=0.25)
         
         time.sleep(2)
         
@@ -500,14 +474,6 @@ def main():
         print(f"📊 Success rate: {success_rate:.1f}%")
         print(f"🎯 Mode: {'Test Mode' if dry_run else 'Live Posting'}")
         print("="*60)
-        
-    except KeyboardInterrupt:
-        logger.info("Execution interrupted by user")
-        print("\n⚠️ Process interrupted by user")
-        
-    except Exception as e:
-        logger.error(f"Critical error during execution: {e}")
-        print(f"\n❌ Critical error: {e}")
         
     finally:
         if driver:
