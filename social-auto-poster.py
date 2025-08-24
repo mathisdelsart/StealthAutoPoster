@@ -459,8 +459,6 @@ def main():
             logger.error("No groups found! Please check your login status and group memberships.")
             return
         
-        logger.info(f"✅ {len(groups)} groups discovered")
-        
         # Limit groups if requested
         if max_groups:
             groups = groups[:max_groups]
