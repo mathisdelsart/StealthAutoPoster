@@ -17,11 +17,20 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10.12"
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver xvfb
+          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver || true
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Run script
-        run: python3 social-auto-poster.py
+      - name: Run Selenium script
+        run: |
+          export CHROME_BIN=$(which chromium-browser)
+          export PATH=$PATH:$(dirname $(which chromedriver))
+          python3 social-auto-poster.py
         env:
           POST_TEXT: ${{ secrets.POST_TEXT }}
