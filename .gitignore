@@ -1,7 +1,6 @@
 # Logs and files
 facebook_automation.log
 groups.txt
-README_TODO.md
 
 # Virtual environment
 myenv
@@ -12,3 +11,6 @@ myenv
 
 # Python
 __pycache__
+
+# MacOS
+.DS_Store

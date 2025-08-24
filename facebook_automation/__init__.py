@@ -4,7 +4,7 @@ A modular, human-like Facebook automation tool for group posting
 """
 
 __version__ = "1.0.0"
-__author__ = "Facebook Automation Team"
+__author__ = "Mathis Delsart"
 __description__ = "Modular Facebook automation for group posting with human-like behavior"
 
 # Import main classes for easy access

@@ -131,8 +131,10 @@ class FacebookAuthenticator:
             )
             
             logger.info("✅ Login successful!")
-            self.human.pause_like_human(2.0, 4.0)
-            self.human.pause_like_human(20.0, 30.0) # Testing purpose
+            
+            # Long pause to have time to accept verification on main device
+            self.human.pause_like_human(10.0, 20.0)
+            
             return True
             
         except TimeoutException:
