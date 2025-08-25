@@ -2,6 +2,7 @@
 Configuration management module for Facebook automation
 """
 import os
+from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -79,7 +80,7 @@ class Config:
         self.credentials = FacebookCredentials.from_env()
         self.automation = AutomationConfig.from_env()
         self.selectors = FacebookSelectors.default()
-        self.post_text = os.environ.get('POST_TEXT', '')
+        self.post_text = self.get_post_text()
         self.my_groups_url = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
         
         if not self.post_text:
@@ -113,3 +114,32 @@ class Config:
             "credentials_enable_service": False,
             "profile.password_manager_leak_detection": False
         }
+
+    def get_post_text(self):
+        today = datetime.today()
+        month, day = today.month, today.day
+
+        if (month == 8 and day >= 25) or (month == 9) or (month == 10 and day <= 19):
+            return os.environ.get("POST_TEXT_BACK_TO_SCHOOL", "")
+        elif (month == 10 and day >= 20) or (month == 11 and day <= 2):
+            return os.environ.get("POST_TEXT_AUTUMN_HOLIDAYS", "")
+        elif (month == 11 and 3 <= day <= 30):
+            return os.environ.get("POST_TEXT_MID_TERM", "")
+        elif (month == 12 and 1 <= day <= 19):
+            return os.environ.get("POST_TEXT_EXAMS_DECEMBER", "")
+        elif (month == 12 and day >= 20) or (month == 1 and day <= 4):
+            return os.environ.get("POST_TEXT_CHRISTMAS_HOLIDAYS", "")
+        elif (month == 1 and 5 <= day <= 31) or (month == 2 and day <= 12):
+            return os.environ.get("POST_TEXT_SECOND_TRIMESTER_1", "")
+        elif (month == 2 and 13 <= day <= 29) or (month == 3 and day == 1):
+            return os.environ.get("POST_TEXT_CARNIVAL_HOLIDAYS", "")
+        elif (month == 3 and day >= 2) or (month == 4 and day <= 24):
+            return os.environ.get("POST_TEXT_SECOND_TRIMESTER_2", "")
+        elif (month == 4 and day >= 25) or (month == 5 and day <= 9):
+            return os.environ.get("POST_TEXT_SPRING_HOLIDAYS", "")
+        elif (month == 5 and day >= 10) or (month == 6 and day <= 28):
+            return os.environ.get("POST_TEXT_EXAMS_JUNE", "")
+        elif (month == 6 and day >= 29) or (month in [7, 8] and day <= 24):
+            return os.environ.get("POST_TEXT_SUMMER_HOLIDAYS", "")
+        else:
+            raise ValueError("No post text found for the current date") # Should never happen

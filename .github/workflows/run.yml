@@ -34,7 +34,17 @@ jobs:
       - name: Run Selenium script with Xvfb
         run: xvfb-run -a python3 main.py
         env:
-          POST_TEXT: ${{ secrets.POST_TEXT }}
+          POST_TEXT_BACK_TO_SCHOOL: ${{ secrets.POST_TEXT_BACK_TO_SCHOOL }}
+          POST_TEXT_AUTUMN_HOLIDAYS: ${{ secrets.POST_TEXT_AUTUMN_HOLIDAYS }}
+          POST_TEXT_MID_TERM: ${{ secrets.POST_TEXT_MID_TERM }}
+          POST_TEXT_EXAMS_DECEMBER: ${{ secrets.POST_TEXT_EXAMS_DECEMBER }}
+          POST_TEXT_CHRISTMAS_HOLIDAYS: ${{ secrets.POST_TEXT_CHRISTMAS_HOLIDAYS }}
+          POST_TEXT_SECOND_TRIMESTER_1: ${{ secrets.POST_TEXT_SECOND_TRIMESTER_1 }}
+          POST_TEXT_CARNIVAL_HOLIDAYS: ${{ secrets.POST_TEXT_CARNIVAL_HOLIDAYS }}
+          POST_TEXT_SECOND_TRIMESTER_2: ${{ secrets.POST_TEXT_SECOND_TRIMESTER_2 }}
+          POST_TEXT_SPRING_HOLIDAYS: ${{ secrets.POST_TEXT_SPRING_HOLIDAYS }}
+          POST_TEXT_EXAMS_JUNE: ${{ secrets.POST_TEXT_EXAMS_JUNE }}
+          POST_TEXT_SUMMER_HOLIDAYS: ${{ secrets.POST_TEXT_SUMMER_HOLIDAYS }}
           FACEBOOK_EMAIL: ${{ secrets.FACEBOOK_EMAIL }}
           FACEBOOK_PASSWORD: ${{ secrets.FACEBOOK_PASSWORD }}
           DRY_RUN: "true"
