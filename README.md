@@ -89,7 +89,7 @@ python3 main.py --mode login-test
 
 #### Extract Groups Only
 ```bash
-python3 main.py --mode extract-only [--output-file my_groups.txt] [--include-names]
+python3 main.py --mode extract-only [--output-file my_groups.txt]
 ```
 
 #### Publish to Specific Groups

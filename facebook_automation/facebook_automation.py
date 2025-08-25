@@ -68,13 +68,10 @@ class FacebookAutomation:
         with self.driver_manager as driver:
             return self._login(driver)
     
-    def extract_groups_only(self, include_names: bool = False) -> Union[List[str], List[Tuple[str, str]]]:
+    def extract_groups_only(self) -> Union[List[str], List[Tuple[str, str]]]:
         """
         Extract groups without publishing
         
-        Args:
-            include_names: If True, extract group names along with URLs
-            
         Returns:
             List of group URLs or (name, url) tuples
         """
@@ -85,7 +82,7 @@ class FacebookAutomation:
                 logger.error("Login failed, cannot extract groups")
                 return []
             
-            return self._extract_groups(driver, include_names)
+            return self._extract_groups(driver)
     
     def publish_to_specific_groups(self, groups: Union[List[str], List[Tuple[str, str]]], 
                                  post_content: Optional[str] = None) -> dict:
@@ -124,14 +121,11 @@ class FacebookAutomation:
         
         return self.authenticator.login(driver)
     
-    def _extract_groups(self, driver, include_names: bool = False) -> Union[List[str], List[Tuple[str, str]]]:
+    def _extract_groups(self, driver) -> Union[List[str], List[Tuple[str, str]]]:
         """Extract groups based on configuration"""
         logger.info("Extracting groups...")
         
-        if include_names:
-            groups = self.group_extractor.extract_group_links_with_names(driver)
-        else:
-            groups = self.group_extractor.extract_group_urls(driver)
+        groups = self.group_extractor.extract_group_links_with_names(driver)
         
         logger.info(f"Extracted {len(groups)} groups")
         return groups

@@ -24,64 +24,6 @@ class GroupExtractor:
             "events", "members", "photos", "discover", "feed"
         ]
     
-    def extract_group_urls(self, driver, max_iterations: int = 10) -> List[str]:
-        """
-        Extract URLs from Facebook groups using incremental scrolling
-        
-        Args:
-            driver: WebDriver instance
-            max_iterations: Maximum scroll iterations
-            
-        Returns:
-            List of group URLs
-        """
-        logger.info("Starting incremental URL extraction...")
-        
-        driver.get(self.config.my_groups_url)
-        self.human.pause_like_human(2, 4)
-        
-        all_urls = set()
-        iterations_without_new = 0
-        max_no_change = 5
-        
-        for iteration in range(max_iterations):
-            logger.info(f"Iteration #{iteration + 1}")
-            
-            # Perform human-like scroll
-            self.human.human_like_scroll(driver)
-            self.human.pause_like_human(1, 3)
-            
-            # Get current URLs
-            current_urls = self._get_group_urls_current_view(driver)
-            
-            # Track new URLs
-            urls_before = len(all_urls)
-            all_urls.update(current_urls)
-            urls_after = len(all_urls)
-            new_count = urls_after - urls_before
-            
-            logger.info(f"URLs found this view: {len(current_urls)}")
-            logger.info(f"New URLs: {new_count}")
-            logger.info(f"Total accumulated: {urls_after}")
-            
-            # Stop condition
-            if new_count == 0:
-                iterations_without_new += 1
-                if iterations_without_new >= max_no_change:
-                    logger.info(f"Stopping: no new URLs for {max_no_change} iterations")
-                    break
-            else:
-                iterations_without_new = 0
-        
-        # Clean URLs
-        all_urls = [url for url in list(all_urls) if url.endswith("/")]
-        
-        logger.info("\n=== FINAL RESULTS ===")
-        logger.info(f"Total iterations: {iteration + 1}")
-        logger.info(f"Total unique URLs: {len(all_urls)}")
-        
-        return list(all_urls)
-    
     def extract_group_links_with_names(self, driver) -> List[Tuple[str, str]]:
         """
         Extract Facebook group links with names using aggressive scrolling

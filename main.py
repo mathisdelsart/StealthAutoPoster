@@ -10,6 +10,7 @@ from facebook_automation import FacebookAutomation
 
 GroupType = Union[str, Tuple[str, str]]
 
+
 def setup_logging(level: str = "INFO"):
     logging.basicConfig(
         level=getattr(logging, level.upper()),
@@ -19,6 +20,7 @@ def setup_logging(level: str = "INFO"):
             logging.FileHandler('facebook_automation.log', mode='a')
         ]
     )
+
 
 def load_groups_from_file(file_path: str) -> List[GroupType]:
     """
@@ -46,14 +48,15 @@ def load_groups_from_file(file_path: str) -> List[GroupType]:
         logging.error(f"Error reading groups file: {e}")
         return []
 
-def save_groups_to_file(groups: List[GroupType], file_path: str, include_names: bool = False) -> bool:
-    """Save extracted groups to a text file (URLs or 'name | url')"""
+
+def save_groups_to_file(groups: List[GroupType], file_path: str) -> bool:
+    """Save extracted groups to a text file (always 'name | url' if name available)"""
     try:
         with open(file_path, 'w', encoding='utf-8') as f:
             for group in groups:
                 if isinstance(group, tuple):
                     name, url = group
-                    line = f"{name} | {url}" if include_names else url
+                    line = f"{name} | {url}"
                 else:
                     line = group
                 f.write(line + "\n")
@@ -61,6 +64,7 @@ def save_groups_to_file(groups: List[GroupType], file_path: str, include_names: 
     except Exception as e:
         logging.error(f"Error saving groups to file {file_path}: {e}")
         return False
+
 
 def main():
     parser = argparse.ArgumentParser(description='Facebook Group Automation Tool')
@@ -70,7 +74,6 @@ def main():
     parser.add_argument('--dry-run', action='store_true', help='Run in test mode without actually posting')
     parser.add_argument('--max-groups', type=int, help='Maximum number of groups to process')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help='Logging level')
-    parser.add_argument('--include-names', action='store_true', help='Include group names when extracting (extract-only mode)')
     parser.add_argument('--output-file', type=str, default='groups.txt', help='Output file for extracted groups')
     parser.add_argument('--groups-file', type=str, help='File containing group URLs (publish-only mode)')
     parser.add_argument('--post-content', type=str, help='Custom post content (publish-only mode)')
@@ -97,11 +100,11 @@ def main():
             print(f"✅ Login test {'passed' if success else 'failed'}")
         
         elif args.mode == 'extract-only':
-            groups = automation.extract_groups_only(include_names=args.include_names)
+            groups = automation.extract_groups_only()
             print(f"\n📋 Extracted {len(groups)} groups:")
             
             if groups:
-                save_success = save_groups_to_file(groups, args.output_file, args.include_names)
+                save_success = save_groups_to_file(groups, args.output_file)
                 if save_success:
                     print(f"Saved groups to '{args.output_file}'")
                     logger.info(f"Groups saved to {args.output_file}")
