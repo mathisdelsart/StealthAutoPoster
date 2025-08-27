@@ -39,17 +39,6 @@ class AutomationConfig:
     typing_delay_max: float = 0.25
     page_load_delay_min: float = 2.0
     page_load_delay_max: float = 4.0
-    
-    @classmethod
-    def from_env(cls) -> 'AutomationConfig':
-        dry_run_env = os.getenv("DRY_RUN")
-    
-        if dry_run_env is not None:
-            dry_run = dry_run_env.lower() == "true"
-            return cls(dry_run=dry_run)
-        else:
-            return cls()
-
 
 
 @dataclass
@@ -78,7 +67,7 @@ class Config:
     
     def __init__(self):
         self.credentials = FacebookCredentials.from_env()
-        self.automation = AutomationConfig.from_env()
+        self.automation = AutomationConfig.default()
         self.selectors = FacebookSelectors.default()
         self.post_text = self.get_post_text()
         self.my_groups_url = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"

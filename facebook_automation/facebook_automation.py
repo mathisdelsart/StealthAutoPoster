@@ -19,6 +19,7 @@ class FacebookAutomation:
     def __init__(self, config: Optional[Config] = None):
         self.config = config or Config()
         self.driver_manager = WebDriverManager(self.config)
+        self.driver = None
         self.human_behavior = HumanBehavior(self.config)
         self.authenticator = FacebookAuthenticator(self.config, self.human_behavior)
         self.group_extractor = GroupExtractor(self.config, self.human_behavior)
@@ -26,63 +27,34 @@ class FacebookAutomation:
         
         logger.info("Facebook Automation initialized")
     
-    def run_full_automation(self) -> dict:
+    def start(self):
+        """Start driver (open session)"""
+        self.driver = self.driver_manager.__enter__()
+        return self.driver
+
+    def stop(self):
+        """Stop driver (close session)"""
+        if self.driver:
+            self.driver_manager.__exit__(None, None, None)
+            self.driver = None
+
+    def login(self) -> bool:
         """
-        Run the complete automation workflow:
-        1. Login to Facebook
-        2. Extract group URLs
-        3. Publish posts to groups
-        
-        Returns:
-            dict: Execution statistics
-        """
-        logger.info("Starting full automation workflow...")
-        
-        with self.driver_manager as driver:
-            try:
-                # Step 1: Login
-                if not self._login(driver):
-                    return self._create_error_stats("Login failed")
-                
-                # Step 2: Extract groups
-                groups = self._extract_groups(driver)
-                if not groups:
-                    return self._create_error_stats("No groups found")
-                
-                # Step 3: Publish posts
-                return self._publish_posts(driver, groups)
-                
-            except Exception as e:
-                logger.error(f"Automation workflow failed: {e}")
-                return self._create_error_stats(f"Workflow error: {e}")
-    
-    def login_only(self) -> bool:
-        """
-        Test login functionality only
+        Login functionality
         
         Returns:
             bool: True if login successful
         """
-        logger.info("Testing login functionality...")
-        
-        with self.driver_manager as driver:
-            return self._login(driver)
+        return self._login(self.driver)
     
-    def extract_groups_only(self) -> Union[List[str], List[Tuple[str, str]]]:
+    def extract_groups(self) -> Union[List[str], List[Tuple[str, str]]]:
         """
-        Extract groups without publishing
+        Extract groups
         
         Returns:
             List of group URLs or (name, url) tuples
         """
-        logger.info("Extracting groups only...")
-        
-        with self.driver_manager as driver:
-            if not self._login(driver):
-                logger.error("Login failed, cannot extract groups")
-                return []
-            
-            return self._extract_groups(driver)
+        return self._extract_groups(self.driver)
     
     def publish_to_specific_groups(self, groups: Union[List[str], List[Tuple[str, str]]], 
                                  post_content: Optional[str] = None) -> dict:
@@ -96,20 +68,14 @@ class FacebookAutomation:
         Returns:
             dict: Execution statistics
         """
-        logger.info(f"Publishing to {len(groups)} specific groups...")
-        
         if post_content is None:
             post_content = self.config.post_text
         
-        with self.driver_manager as driver:
-            if not self._login(driver):
-                return self._create_error_stats("Login failed")
-            
-            return self.post_publisher.bulk_publish(
-                driver, groups, post_content, 
-                dry_run=self.config.automation.dry_run,
-                max_groups=self.config.automation.max_groups
-            )
+        return self.post_publisher.bulk_publish(
+            self.driver, groups, post_content, 
+            dry_run=self.config.automation.dry_run,
+            max_groups=self.config.automation.max_groups
+        )
     
     def _login(self, driver) -> bool:
         """Handle login process"""

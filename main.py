@@ -69,47 +69,51 @@ def save_groups_to_file(groups: List[GroupType], file_path: str) -> bool:
 def main():
     parser = argparse.ArgumentParser(description='Facebook Group Automation Tool')
     
-    parser.add_argument('--mode', choices=['full', 'login-test', 'extract-only', 'publish-only'], 
+    parser.add_argument('--mode', choices=['full', 'login', 'extract', 'publish'], 
                         default='full', help='Automation mode to run')
-    parser.add_argument('--dry-run', action='store_true', help='Run in test mode without actually posting')
+    parser.add_argument('--dry-run', action='store_false', help='Run in test mode without actually posting')
     parser.add_argument('--max-groups', type=int, help='Maximum number of groups to process')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help='Logging level')
     parser.add_argument('--output-file', type=str, default='groups.txt', help='Output file for extracted groups')
-    parser.add_argument('--groups-file', type=str, help='File containing group URLs (publish-only mode)')
-    parser.add_argument('--post-content', type=str, help='Custom post content (publish-only mode)')
+    parser.add_argument('--groups-file', type=str, help='File containing group URLs (publish mode)')
+    parser.add_argument('--post-content', type=str, help='Custom post content (publish mode)')
     
     args = parser.parse_args()
     
     setup_logging(args.log_level)
     logger = logging.getLogger(__name__)
     
+    automation = FacebookAutomation()
+    driver = automation.start()
+
+    # Store extracted groups for later use
+    groups = None
+    
+    if args.dry_run:
+        automation.update_config(dry_run=True)
+    if args.max_groups:
+        automation.update_config(max_groups=args.max_groups)
+    
     try:
-        automation = FacebookAutomation()
+        success = automation.login()
+
+        if not success:
+            logger.error("Login failed")
+            sys.exit(1)
         
-        if args.dry_run:
-            automation.update_config(dry_run=True)
-        if args.max_groups:
-            automation.update_config(max_groups=args.max_groups)
+        logger.info("Login successful")
         
-        if args.mode == 'full':
-            stats = automation.run_full_automation()
-            print(automation.get_stats_summary(stats))
-        
-        elif args.mode == 'login-test':
-            success = automation.login_only()
-            print(f"✅ Login test {'passed' if success else 'failed'}")
-        
-        elif args.mode == 'extract-only':
-            groups = automation.extract_groups_only()
-            print(f"\n📋 Extracted {len(groups)} groups:")
+        if args.mode == 'extract' or args.mode == 'full':
+            groups = automation.extract_groups()
+            logger.info(f"Extracted {len(groups)} groups")
             
             if groups:
                 save_success = save_groups_to_file(groups, args.output_file)
                 if save_success:
-                    print(f"Saved groups to '{args.output_file}'")
                     logger.info(f"Groups saved to {args.output_file}")
                 else:
                     logger.error(f"Failed to save groups to {args.output_file}")
+                    sys.exit(1)
                 
                 for i, group in enumerate(groups, 1):
                     if isinstance(group, tuple):
@@ -119,30 +123,35 @@ def main():
                     else:
                         print(f"{i:3d}. {group}")
             else:
-                print("!! No groups extracted !!")
                 logger.warning("No groups were extracted")
+                sys.exit(1)
         
-        elif args.mode == 'publish-only':
-            if not args.groups_file:
-                logger.error("--groups-file is required for publish-only mode")
+        if args.mode == 'publish' or args.mode == 'full':
+            if args.mode == 'publish' and not args.groups_file:
+                logger.error("--groups-file is required for publish mode")
                 sys.exit(1)
             
-            groups = load_groups_from_file(args.groups_file)
-            if not groups:
+            if groups is None:
+                groups = load_groups_from_file(args.groups_file)
+
+            if groups == []:
                 logger.error(f"No groups found in {args.groups_file}")
                 sys.exit(1)
             
             stats = automation.publish_to_specific_groups(groups, post_content=args.post_content)
             print(automation.get_stats_summary(stats))
-    
+
     except KeyboardInterrupt:
         logger.info("Automation interrupted by user")
-        print("\n!! Automation stopped by user !!")
+        print("\nAutomation stopped by user")
     
     except Exception as e:
         logger.error(f"Automation failed with error: {e}")
         print(f"\n❌ Automation failed: {e}")
         sys.exit(1)
+    
+    finally:
+        automation.stop()
 
 if __name__ == "__main__":
     main()

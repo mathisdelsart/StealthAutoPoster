@@ -62,14 +62,7 @@ FACEBOOK_EMAIL=your_email@example.com
 FACEBOOK_PASSWORD=your_secure_password
 
 # Post Content
-POST_TEXT=Your post content here...
-
-# Automation Settings
-DRY_RUN=true              # Set to false for live posting
-MAX_GROUPS=10             # Limit number of groups (optional)
-MAX_SCROLL_TIME=10        # Minutes to scroll for groups
-POST_DELAY_MIN=5.0        # Minimum delay between posts (seconds)
-POST_DELAY_MAX=10.0       # Maximum delay between posts (seconds)
+POST_TEXT=Your post content here... (several posts)
 ```
 > ⚠️ Never commit `.env` to GitHub. Make sure `.env` is listed in `.gitignore`.
 
@@ -82,28 +75,28 @@ POST_DELAY_MAX=10.0       # Maximum delay between posts (seconds)
 python3 main.py
 ```
 
-#### Test Login Only
+#### Login Only
 ```bash
-python3 main.py --mode login-test
+python3 main.py --mode="login"
 ```
 
 #### Extract Groups Only
 ```bash
-python3 main.py --mode extract-only [--output-file my_groups.txt]
+python3 main.py --mode="extract" [--output-file="my_groups.txt"]
 ```
 
 #### Publish to Specific Groups
 ```bash
-python3 main.py --mode publish-only --groups-file groups.txt
+python3 main.py --mode="publish" --groups-file="groups.txt"
 ```
 
 #### Advanced Options
 ```bash
 # Run with custom settings
-python3 main.py --dry-run --max-groups 5 --log-level DEBUG
+python3 main.py --dry-run --max-groups=5 --log-level="DEBUG"
 
 # Custom post content
-python3 main.py --mode publish-only --groups-file groups.txt --post-content "Custom message"
+python3 main.py --mode="publish" --groups-file="groups.txt" --post-content="Custom message"
 ```
 
 ## 📊 Output and Logging

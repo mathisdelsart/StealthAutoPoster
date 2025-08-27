@@ -198,7 +198,9 @@ class GroupExtractor:
 
                 if href not in [grp[1] for grp in groups]:
                     clean_name = re.split(r"Dernière visite|Last visit", name)[0].strip()
-                    groups.append((clean_name, href))
+
+                    if "Demande d’adhésion envoyée" not in clean_name:
+                        groups.append((clean_name, href))
 
             except Exception as e:
                 logger.warning(f"Error processing link: {e}")
