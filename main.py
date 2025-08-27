@@ -71,7 +71,7 @@ def main():
     
     parser.add_argument('--mode', choices=['full', 'login', 'extract', 'publish'], 
                         default='full', help='Automation mode to run')
-    parser.add_argument('--dry-run', action='store_false', help='Run in test mode without actually posting')
+    parser.add_argument('--dry-run', action='store_true', help='Run in test mode without actually posting')
     parser.add_argument('--max-groups', type=int, help='Maximum number of groups to process')
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help='Logging level')
     parser.add_argument('--output-file', type=str, default='groups.txt', help='Output file for extracted groups')

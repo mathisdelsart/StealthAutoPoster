@@ -73,7 +73,7 @@ class Config:
         self.my_groups_url = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
         
         if not self.post_text:
-            raise ValueError("Environment variable POST_TEXT is required")
+            raise ValueError("Environment variable is required. Check 'get_post_text()' method.")
     
     @property
     def chrome_options_args(self) -> List[str]:
