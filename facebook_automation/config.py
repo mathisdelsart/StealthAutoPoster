@@ -67,7 +67,7 @@ class Config:
     
     def __init__(self):
         self.credentials = FacebookCredentials.from_env()
-        self.automation = AutomationConfig.default()
+        self.automation = AutomationConfig
         self.selectors = FacebookSelectors.default()
         self.post_text = self.get_post_text()
         self.my_groups_url = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
