@@ -45,7 +45,9 @@ class FacebookAutomation:
         Returns:
             bool: True if login successful
         """
-        return self._login(self.driver)
+        login_info = self._login(self.driver)
+        time.sleep(5) # To have time to accept notification if new device
+        return login_info
     
     def extract_groups(self) -> Union[List[str], List[Tuple[str, str]]]:
         """
