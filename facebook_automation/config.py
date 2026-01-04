@@ -105,30 +105,65 @@ class Config:
         }
 
     def get_post_text(self):
-        today = datetime.today()
-        month, day = today.month, today.day
+        # today = datetime.today()
+        # month, day = today.month, today.day
 
-        if (month == 8 and day >= 25) or (month == 9) or (month == 10 and day <= 19):
-            return os.environ.get("POST_TEXT_BACK_TO_SCHOOL", "")
-        elif (month == 10 and day >= 20) or (month == 11 and day <= 2):
-            return os.environ.get("POST_TEXT_AUTUMN_HOLIDAYS", "")
-        elif (month == 11 and 3 <= day <= 30):
-            return os.environ.get("POST_TEXT_MID_TERM", "")
-        elif (month == 12 and 1 <= day <= 19):
-            return os.environ.get("POST_TEXT_EXAMS_DECEMBER", "")
-        elif (month == 12 and day >= 20) or (month == 1 and day <= 4):
-            return os.environ.get("POST_TEXT_CHRISTMAS_HOLIDAYS", "")
-        elif (month == 1 and 5 <= day <= 31) or (month == 2 and day <= 12):
-            return os.environ.get("POST_TEXT_SECOND_TRIMESTER_1", "")
-        elif (month == 2 and 13 <= day <= 29) or (month == 3 and day == 1):
-            return os.environ.get("POST_TEXT_CARNIVAL_HOLIDAYS", "")
-        elif (month == 3 and day >= 2) or (month == 4 and day <= 24):
-            return os.environ.get("POST_TEXT_SECOND_TRIMESTER_2", "")
-        elif (month == 4 and day >= 25) or (month == 5 and day <= 9):
-            return os.environ.get("POST_TEXT_SPRING_HOLIDAYS", "")
-        elif (month == 5 and day >= 10) or (month == 6 and day <= 28):
-            return os.environ.get("POST_TEXT_EXAMS_JUNE", "")
-        elif (month == 6 and day >= 29) or (month in [7, 8] and day <= 24):
-            return os.environ.get("POST_TEXT_SUMMER_HOLIDAYS", "")
-        else:
-            raise ValueError("No post text found for the current date") # Should never happen
+        # if (month == 8 and day >= 25) or (month == 9) or (month == 10 and day <= 19):
+        #     return os.environ.get("POST_TEXT_BACK_TO_SCHOOL", "")
+        # elif (month == 10 and day >= 20) or (month == 11 and day <= 2):
+        #     return os.environ.get("POST_TEXT_AUTUMN_HOLIDAYS", "")
+        # elif (month == 11 and 3 <= day <= 30):
+        #     return os.environ.get("POST_TEXT_MID_TERM", "")
+        # elif (month == 12 and 1 <= day <= 19):
+        #     return os.environ.get("POST_TEXT_EXAMS_DECEMBER", "")
+        # elif (month == 12 and day >= 20) or (month == 1 and day <= 4):
+        #     return os.environ.get("POST_TEXT_CHRISTMAS_HOLIDAYS", "")
+        # elif (month == 1 and 5 <= day <= 31) or (month == 2 and day <= 12):
+        #     return os.environ.get("POST_TEXT_SECOND_TRIMESTER_1", "")
+        # elif (month == 2 and 13 <= day <= 29) or (month == 3 and day == 1):
+        #     return os.environ.get("POST_TEXT_CARNIVAL_HOLIDAYS", "")
+        # elif (month == 3 and day >= 2) or (month == 4 and day <= 24):
+        #     return os.environ.get("POST_TEXT_SECOND_TRIMESTER_2", "")
+        # elif (month == 4 and day >= 25) or (month == 5 and day <= 9):
+        #     return os.environ.get("POST_TEXT_SPRING_HOLIDAYS", "")
+        # elif (month == 5 and day >= 10) or (month == 6 and day <= 28):
+        #     return os.environ.get("POST_TEXT_EXAMS_JUNE", "")
+        # elif (month == 6 and day >= 29) or (month in [7, 8] and day <= 24):
+        #     return os.environ.get("POST_TEXT_SUMMER_HOLIDAYS", "")
+        # else:
+        #     raise ValueError("No post text found for the current date") # Should never happen
+
+        return """📘 𝐂𝐨𝐮𝐫𝐬 𝐩𝐚𝐫𝐭𝐢𝐜𝐮𝐥𝐢𝐞𝐫𝐬 – 𝐌𝐚𝐭𝐡𝐬, 𝐏𝐡𝐲𝐬𝐢𝐪𝐮𝐞 & 𝐏𝐲𝐭𝐡𝐨𝐧 (𝐒𝐞𝐜𝐨𝐧𝐝𝐚𝐢𝐫𝐞)
+
+📉 Difficultés scolaires ? Besoin de méthode ou de remise à niveau ?
+
+Je suis 𝐌𝐚𝐭𝐡𝐢𝐬, ingénieur civil en informatique & IA, passionné par l’enseignement, et j’accompagne 𝐥𝐞𝐬 𝐞́𝐥𝐞̀𝐯𝐞𝐬 𝐝𝐮 𝐬𝐞𝐜𝐨𝐧𝐝𝐚𝐢𝐫𝐞 avec une approche 𝐜𝐥𝐚𝐢𝐫𝐞, 𝐬𝐭𝐫𝐮𝐜𝐭𝐮𝐫𝐞́𝐞 𝐞𝐭 𝐩𝐞𝐫𝐬𝐨𝐧𝐧𝐚𝐥𝐢𝐬𝐞́𝐞.
+
+─────────────────────────────
+🔗 𝐄𝐧 𝐬𝐚𝐯𝐨𝐢𝐫 𝐩𝐥𝐮𝐬
+Présentation, méthode, matières, témoignages et contacts :
+👉 https://mathis003.github.io/cours-particuliers/mathis-delsart
+
+─────────────────────────────
+
+🎯 𝐂𝐨𝐮𝐫𝐬 𝐩𝐫𝐨𝐩𝐨𝐬𝐞́𝐬
+➤ 𝐌𝐚𝐭𝐡𝐞́𝐦𝐚𝐭𝐢𝐪𝐮𝐞𝐬 : 1re → 6e secondaire
+➤ 𝐏𝐡𝐲𝐬𝐢𝐪𝐮𝐞 : 3e → 6e secondaire
+➤ 𝐏𝐫𝐨𝐠𝐫𝐚𝐦𝐦𝐚𝐭𝐢𝐨𝐧 𝐏𝐲𝐭𝐡𝐨𝐧 : débutants
+
+✔️ Remise à niveau
+✔️ Préparation aux évaluations
+✔️ Explications simples et adaptées au rythme de l’élève
+
+─────────────────────────────
+📍 𝐌𝐨𝐝𝐚𝐥𝐢𝐭𝐞́𝐬
+🏠 Présentiel : Gouy-Lez-Piéton / Courcelles (Belgique)
+🌐 En ligne : Teams ou Discord
+⏰ Horaires très flexibles (semaine & week-end)
+
+─────────────────────────────
+📩 𝐈𝐧𝐭𝐞́𝐫𝐞𝐬𝐬𝐞́(𝐞) ?
+Contactez-moi en 𝐦𝐞𝐬𝐬𝐚𝐠𝐞 𝐩𝐫𝐢𝐯𝐞́ ou 𝐯𝐢𝐚 𝐦𝐨𝐧 𝐬𝐢𝐭𝐞 pour réserver un créneau.
+
+À bientôt,
+𝐌𝐚𝐭𝐡𝐢𝐬"""
