@@ -135,20 +135,20 @@ class Config:
 
         return """📘 𝐂𝐨𝐮𝐫𝐬 𝐩𝐚𝐫𝐭𝐢𝐜𝐮𝐥𝐢𝐞𝐫𝐬 – 𝐌𝐚𝐭𝐡𝐬, 𝐏𝐡𝐲𝐬𝐢𝐪𝐮𝐞 & 𝐏𝐲𝐭𝐡𝐨𝐧 (𝐒𝐞𝐜𝐨𝐧𝐝𝐚𝐢𝐫𝐞)
 
-📉 Difficultés scolaires ? Besoin de méthode ou de remise à niveau ?
+📉 Difficultés scolaires ? Besoin de méthode ou d’une remise à niveau ?
 
 Je suis 𝐌𝐚𝐭𝐡𝐢𝐬, ingénieur civil en informatique & IA, passionné par l’enseignement, et j’accompagne 𝐥𝐞𝐬 𝐞́𝐥𝐞̀𝐯𝐞𝐬 𝐝𝐮 𝐬𝐞𝐜𝐨𝐧𝐝𝐚𝐢𝐫𝐞 avec une approche 𝐜𝐥𝐚𝐢𝐫𝐞, 𝐬𝐭𝐫𝐮𝐜𝐭𝐮𝐫𝐞́𝐞 𝐞𝐭 𝐩𝐞𝐫𝐬𝐨𝐧𝐧𝐚𝐥𝐢𝐬𝐞́𝐞.
 
 ─────────────────────────────
 🔗 𝐄𝐧 𝐬𝐚𝐯𝐨𝐢𝐫 𝐩𝐥𝐮𝐬
-Présentation, méthode, matières, témoignages et contacts :
+Présentation, méthode, matières, témoignages et contact
 👉 https://mathis003.github.io/cours-particuliers/mathis-delsart
 
 ─────────────────────────────
 
 🎯 𝐂𝐨𝐮𝐫𝐬 𝐩𝐫𝐨𝐩𝐨𝐬𝐞́𝐬
-➤ 𝐌𝐚𝐭𝐡𝐞́𝐦𝐚𝐭𝐢𝐪𝐮𝐞𝐬 : 1re → 6e secondaire
-➤ 𝐏𝐡𝐲𝐬𝐢𝐪𝐮𝐞 : 3e → 6e secondaire
+➤ 𝐌𝐚𝐭𝐡𝐞́𝐦𝐚𝐭𝐢𝐪𝐮𝐞𝐬 : 1re à 6e secondaire
+➤ 𝐏𝐡𝐲𝐬𝐢𝐪𝐮𝐞 : 3e à 6e secondaire
 ➤ 𝐏𝐫𝐨𝐠𝐫𝐚𝐦𝐦𝐚𝐭𝐢𝐨𝐧 𝐏𝐲𝐭𝐡𝐨𝐧 : débutants
 
 ✔️ Remise à niveau
