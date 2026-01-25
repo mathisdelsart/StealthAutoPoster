@@ -57,7 +57,7 @@ facebook_automation/
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mathis003/StealthAutoPoster.git
+git clone https://github.com/mathisdelsart/StealthAutoPoster.git
 cd StealthAutoPoster
 
 # Install dependencies
