@@ -2,7 +2,6 @@
 Facebook group extraction and discovery
 """
 import time
-import random
 import re
 import logging
 from typing import List, Tuple, Set

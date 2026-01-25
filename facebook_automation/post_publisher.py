@@ -3,8 +3,6 @@ Facebook post publishing module
 """
 import logging
 from typing import Optional
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, ElementNotInteractableException
 from .config import Config
 from .human_behavior import HumanBehavior
 from .driver_manager import WebDriverManager
