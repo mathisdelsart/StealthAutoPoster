@@ -22,26 +22,29 @@ class FacebookAuthenticator:
     def login(self, driver) -> bool:
         """
         Automated Facebook login with anti-detection measures
-        
+
         Args:
             driver: Selenium WebDriver instance
-            
+
         Returns:
             bool: True if login successful, False otherwise
-            
+
         Raises:
             ValueError: If credentials are not configured
         """
         logger.info("Starting Facebook login process...")
-        
+
         try:
             # Navigate to Facebook login page
             logger.info("Navigating to Facebook login page...")
             driver.get("https://www.facebook.com/login")
-            
+
             # Wait for page to load
             self.human.page_load_delay()
-            
+
+            # Handle cookie consent dialog if present
+            self._handle_cookie_consent(driver)
+
             # Locate and fill email field
             if not self._fill_email_field(driver):
                 return False
@@ -67,6 +70,42 @@ class FacebookAuthenticator:
             logger.error(f"Login failed: {e}")
             return False
     
+    def _handle_cookie_consent(self, driver) -> None:
+        """Dismiss the cookie consent dialog if present"""
+        # Quick check: see if any cookie banner exists before trying specific buttons
+        try:
+            WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '[data-cookiebanner]'))
+            )
+        except TimeoutException:
+            logger.debug("No cookie consent dialog detected")
+            return
+
+        logger.info("Cookie consent dialog detected, attempting to accept...")
+        cookie_button_selectors = [
+            (By.CSS_SELECTOR, 'button[data-cookiebanner="accept_button"]'),
+            (By.CSS_SELECTOR, 'button[data-cookiebanner="accept_only_essential_button"]'),
+            (By.XPATH, '//button[contains(text(), "Allow all cookies")]'),
+            (By.XPATH, '//button[contains(text(), "Accept all")]'),
+            (By.XPATH, '//button[contains(text(), "Tout accepter")]'),
+            (By.XPATH, '//button[contains(text(), "Autoriser tous les cookies")]'),
+            (By.XPATH, '//button[contains(text(), "Autoriser les cookies essentiels et facultatifs")]'),
+        ]
+
+        for by, selector in cookie_button_selectors:
+            try:
+                button = WebDriverWait(driver, 2).until(
+                    EC.element_to_be_clickable((by, selector))
+                )
+                button.click()
+                logger.info("Cookie consent accepted")
+                self.human.pause_like_human(1.0, 2.0)
+                return
+            except TimeoutException:
+                continue
+
+        logger.warning("Cookie banner detected but could not find accept button")
+
     def _fill_email_field(self, driver) -> bool:
         """Fill email field with human-like behavior"""
         try:
