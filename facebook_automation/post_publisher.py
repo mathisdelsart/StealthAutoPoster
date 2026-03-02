@@ -18,43 +18,49 @@ class PostPublisher:
         self.human = human_behavior
         self.driver_manager = driver_manager
     
-    def publish_to_group(self, driver, group_name: str, group_url: str, 
-                        post_content: str, dry_run: bool = False) -> bool:
+    def publish_to_group(self, driver, group_name: str, group_url: str,
+                        post_content: str, post_title: str = "",
+                        dry_run: bool = False) -> bool:
         """
         Publish a post to a specific Facebook group
-        
+
         Args:
             driver: WebDriver instance
             group_name: Name of the group
             group_url: URL of the group
             post_content: Content to post
+            post_title: Title for the post (optional)
             dry_run: If True, prepare post without actually publishing
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
         try:
             logger.info(f"Publishing to group: {group_name}")
-            
+
             # Navigate to group
             if not self._navigate_to_group(driver, group_url, group_name):
                 return False
-            
+
             # Find and click post composition area
             if not self._click_post_composition_area(driver, group_name):
                 return False
-            
-            # Input post content
+
+            # Fill title if provided
+            if post_title:
+                self._input_post_title(driver, post_title, group_name)
+
+            # Input post content (body)
             if not self._input_post_content(driver, post_content, group_name):
                 return False
-            
+
             if dry_run:
                 logger.info(f"[DRY RUN] Post prepared for {group_name} (not published)")
                 return True
-            
+
             # Publish the post
             return self._publish_post(driver, group_name)
-            
+
         except Exception as e:
             logger.error(f"❌ Error publishing to {group_name}: {e}")
             return False
@@ -63,7 +69,7 @@ class PostPublisher:
         """Navigate to the Facebook group"""
         try:
             driver.get(group_url)
-            self.human.pause_like_human(3, 5)
+            self.human.pause_like_human(1.5, 3)
             
             # Verify we're in a valid group page
             if "/groups/" not in driver.current_url:
@@ -90,7 +96,7 @@ class PostPublisher:
             
             # Click with human-like behavior
             self.human.human_like_click(driver, post_box)
-            self.human.pause_like_human(1, 2)
+            self.human.pause_like_human(0.5, 1)
             
             return True
             
@@ -99,23 +105,45 @@ class PostPublisher:
             return False
             
     
-    def _input_post_content(self, driver, post_content: str, group_name: str) -> bool:
-        """Input the post content into the active text area"""
+    def _input_post_title(self, driver, post_title: str, group_name: str) -> bool:
+        """Fill the title field in the post composer dialog"""
         try:
-            # Get the active element (should be the text input)
-            active_element = driver.switch_to.active_element
-            
-            if not active_element:
-                logger.error(f"No active text element found for {group_name}")
+            title_field = self.driver_manager.find_element_with_selectors(
+                self.config.selectors.title_selectors, wait_time=3
+            )
+
+            if not title_field:
+                logger.warning(f"Title field not found for {group_name}, skipping title")
                 return False
-            
-            # Input text using human-like behavior
-            self.human.input_text(active_element, post_content)
-            self.human.pause_like_human(1, 2)
-            
+
+            self.human.human_like_click(driver, title_field)
+            self.human.pause_like_human(0.3, 0.5)
+            self.human.input_text(title_field, post_title, driver=driver)
+            self.human.pause_like_human(0.3, 0.5)
+
+            logger.info(f"Title entered for {group_name}")
+            return True
+
+        except Exception as e:
+            logger.warning(f"Error filling title for {group_name}: {e}")
+            return False
+
+    def _input_post_content(self, driver, post_content: str, group_name: str) -> bool:
+        """Input the post content into the body text area"""
+        from selenium.webdriver.common.keys import Keys
+        from selenium.webdriver.common.action_chains import ActionChains
+        try:
+            # Tab from title field to body field
+            ActionChains(driver).send_keys(Keys.TAB).perform()
+            self.human.pause_like_human(0.3, 0.5)
+
+            active_el = driver.switch_to.active_element
+            self.human.input_text(active_el, post_content, driver=driver)
+            self.human.pause_like_human(0.5, 1)
+
             logger.info(f"Post content entered for {group_name}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error inputting post content for {group_name}: {e}")
             return False
@@ -133,13 +161,13 @@ class PostPublisher:
                 return False
             
             # Human-like delay before publishing
-            self.human.pause_like_human(2, 4)
-            
+            self.human.pause_like_human(0.5, 1)
+
             # Click publish with human-like behavior
             self.human.human_like_click(driver, publish_button)
-            
+
             # Wait a moment to confirm publication
-            self.human.pause_like_human(2, 3)
+            self.human.pause_like_human(1, 2)
             
             logger.info(f"✅ Post published successfully in {group_name}!")
             return True
@@ -148,8 +176,9 @@ class PostPublisher:
             logger.error(f"Error publishing post for {group_name}: {e}")
             return False
     
-    def bulk_publish(self, driver, groups: list, post_content: str, 
-                    dry_run: bool = False, max_groups: Optional[int] = None) -> dict:
+    def bulk_publish(self, driver, groups: list, post_content: str,
+                    post_title: str = "", dry_run: bool = False,
+                    max_groups: Optional[int] = None) -> dict:
         """
         Publish to multiple groups
         
@@ -195,7 +224,8 @@ class PostPublisher:
             
             # Publish to group
             success = self.publish_to_group(
-                driver, group_name, group_url, post_content, dry_run
+                driver, group_name, group_url, post_content,
+                post_title=post_title, dry_run=dry_run
             )
             
             if success:

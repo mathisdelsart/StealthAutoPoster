@@ -59,23 +59,28 @@ class FacebookAutomation:
         """
         return self._extract_groups(self.driver)
     
-    def publish_to_specific_groups(self, groups: Union[List[str], List[Tuple[str, str]]], 
-                                 post_content: Optional[str] = None) -> dict:
+    def publish_to_specific_groups(self, groups: Union[List[str], List[Tuple[str, str]]],
+                                 post_content: Optional[str] = None,
+                                 post_title: Optional[str] = None) -> dict:
         """
         Publish posts to specific groups without extracting
-        
+
         Args:
             groups: List of group URLs or (name, url) tuples
             post_content: Content to post (uses config default if None)
-            
+            post_title: Title for the post (uses config default if None)
+
         Returns:
             dict: Execution statistics
         """
         if post_content is None:
             post_content = self.config.post_text
-        
+        if post_title is None:
+            post_title = self.config.post_title
+
         return self.post_publisher.bulk_publish(
-            self.driver, groups, post_content, 
+            self.driver, groups, post_content,
+            post_title=post_title,
             dry_run=self.config.automation.dry_run,
             max_groups=self.config.automation.max_groups
         )
@@ -102,9 +107,10 @@ class FacebookAutomation:
     def _publish_posts(self, driver, groups: list) -> dict:
         """Publish posts to extracted groups"""
         logger.info("Starting post publication...")
-        
+
         return self.post_publisher.bulk_publish(
             driver, groups, self.config.post_text,
+            post_title=self.config.post_title,
             dry_run=self.config.automation.dry_run,
             max_groups=self.config.automation.max_groups
         )

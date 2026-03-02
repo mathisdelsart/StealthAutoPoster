@@ -69,46 +69,57 @@ class HumanBehavior:
         
         logger.debug("Slow typing completed successfully")
     
-    def paste_text(self, element, text: str) -> bool:
+    def paste_text(self, driver, element, text: str) -> bool:
         """
-        Attempt to paste text using clipboard (faster than typing)
-        
+        Insert multi-line text into a contenteditable element.
+
+        Uses document.execCommand('insertText') which is the most reliable
+        way to insert multi-line text into Facebook's React contenteditable.
+
         Args:
+            driver: WebDriver instance
             element: WebDriver element to paste into
             text: Text to paste
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
         try:
+            # Clipboard paste (Cmd+V / Ctrl+V) - preserves newlines in contenteditable
             pyperclip.copy(text)
-            
-            if platform.system() == "Darwin":  # macOS
-                element.send_keys(Keys.COMMAND, 'v')
-            else:  # Windows/Linux
-                element.send_keys(Keys.CONTROL, 'v')
-            
-            time.sleep(2)
-            logger.debug("Text pasted successfully")
+            actions = ActionChains(driver)
+            actions.click(element)
+            if platform.system() == "Darwin":
+                actions.key_down(Keys.COMMAND).send_keys('v').key_up(Keys.COMMAND)
+            else:
+                actions.key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL)
+            actions.perform()
+            time.sleep(1)
+            logger.info(f"Text pasted via clipboard ({len(text)} chars)")
             return True
-            
+
         except Exception as e:
-            logger.warning(f"Clipboard operation failed: {e}")
+            logger.warning(f"Paste operation failed: {e}")
             return False
     
-    def input_text(self, element, text: str):
+    def input_text(self, element, text: str, driver=None):
         """
         Input text using either clipboard paste or slow typing
-        
+
         Args:
             element: WebDriver element to input text into
             text: Text to input
+            driver: WebDriver instance (needed for paste)
         """
-        # Try clipboard paste first (faster and more reliable)
-        if not self.paste_text(element, text):
-            # Fall back to slow typing
-            logger.info("Using manual typing as fallback")
-            self.type_slowly(element, text)
+        line_count = text.count('\n') + 1
+        logger.info(f"Inputting text: {len(text)} chars, {line_count} lines")
+
+        # Try JS-based paste first (most reliable for multi-line in contenteditable)
+        if driver and self.paste_text(driver, element, text):
+            return
+        # Fall back to slow typing
+        logger.info("Using manual typing as fallback")
+        self.type_slowly(element, text)
     
     def human_like_click(self, driver, element):
         """
@@ -120,14 +131,14 @@ class HumanBehavior:
         """
         # Scroll element into view
         driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element)
-        time.sleep(random.uniform(0.5, 1.5))
-        
+        time.sleep(random.uniform(0.2, 0.5))
+
         # Use ActionChains for more natural clicking
         actions = ActionChains(driver)
         actions.move_to_element(element)
-        
+
         # Small random delay before click
-        time.sleep(random.uniform(0.1, 0.5))
+        time.sleep(random.uniform(0.1, 0.3))
         
         actions.click().perform()
         logger.debug("Human-like click performed")

@@ -2,7 +2,6 @@
 Configuration management module for Facebook automation
 """
 import os
-from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -33,25 +32,43 @@ class AutomationConfig:
     dry_run: bool = False
     max_groups: Optional[int] = None
     max_scroll_time_minutes: int = 10
-    post_delay_min: float = 5.0
-    post_delay_max: float = 10.0
-    typing_delay_min: float = 0.05
-    typing_delay_max: float = 0.25
-    page_load_delay_min: float = 2.0
-    page_load_delay_max: float = 4.0
+    post_delay_min: float = 2.0
+    post_delay_max: float = 4.0
+    typing_delay_min: float = 0.02
+    typing_delay_max: float = 0.08
+    page_load_delay_min: float = 1.0
+    page_load_delay_max: float = 2.0
 
 
 @dataclass
 class FacebookSelectors:
     """CSS/XPath selectors for Facebook elements"""
     write_selectors: List[str]
+    title_selectors: List[str]
+    body_selectors: List[str]
     post_selectors: List[str]
-    
+
     @classmethod
     def default(cls) -> 'FacebookSelectors':
         return cls(
             write_selectors=[
                 '//span[contains(text(), "Exprimez-vous")]/ancestor::div[@role="button"]'
+            ],
+            title_selectors=[
+                '//div[@role="dialog"]//input[@type="text"]',
+                '//div[@role="dialog"]//div[@aria-label="Titre"]',
+                '//div[@role="dialog"]//div[@data-placeholder="Titre"]',
+                '//div[@role="dialog"]//input[@aria-label="Titre"]',
+                '//div[@role="dialog"]//div[contains(@aria-label, "titre")]',
+                '//div[@role="dialog"]//input[contains(@placeholder, "Titre")]',
+                '//div[@role="dialog"]//input[contains(@placeholder, "titre")]',
+            ],
+            body_selectors=[
+                '//div[@role="dialog"]//div[contains(@data-placeholder, "publication")]',
+                '//div[@role="dialog"]//div[contains(@data-placeholder, "Créez")]',
+                '//div[@role="dialog"]//div[contains(@aria-label, "publication")]',
+                '//div[@role="dialog"]//div[contains(@aria-label, "Créez")]',
+                '//div[@role="dialog"]//div[@role="textbox" and @contenteditable="true"]',
             ],
             post_selectors=[
                 '//div[@aria-label="Publier" and @role="button"]',
@@ -69,11 +86,12 @@ class Config:
         self.credentials = FacebookCredentials.from_env()
         self.automation = AutomationConfig
         self.selectors = FacebookSelectors.default()
+        self.post_title = os.environ.get('POST_TITLE', '')
         self.post_text = self.get_post_text()
         self.my_groups_url = "https://www.facebook.com/groups/joins/?nav_source=tab&ordering=viewer_added"
-        
+
         if not self.post_text:
-            raise ValueError("Environment variable is required. Check 'get_post_text()' method.")
+            raise ValueError("Environment variable POST_TEXT is required.")
     
     @property
     def chrome_options_args(self) -> List[str]:
@@ -90,7 +108,7 @@ class Config:
             "--disable-extensions",
             "--disable-popup-blocking",
             "--disable-default-apps",
-            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         ]
     
     @property
